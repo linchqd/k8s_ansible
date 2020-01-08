@@ -1,0 +1,93 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name":"kube-etcd",
+    "namespace": "kube-system",
+    "annotations": {
+      "scheduler.alpha.kubernetes.io/critical-pod": "",
+      "seccomp.security.alpha.kubernetes.io/pod": "docker/default"
+     }
+  },
+  "spec": {
+    "hostNetwork": true,
+    "containers":[{
+      "name": "kube-etcd",
+      "image": "{{cluster_etcd_images}}",
+      "livenessProbe": {
+          "exec": {
+            "command": ["/bin/sh", "-ec", "ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/ssl/etcd-ca.pem --cert=/etc/ssl/etcd.pem --key=/etc/ssl/etcd-key.pem get foo"]
+          },
+          "failureThreshold": 8,
+          "initialDelaySeconds": 15,
+          "timeoutSeconds": 15
+      },
+      "command": [
+        "/bin/sh",
+        "-c",
+        "if [ -e /usr/local/bin/migrate-if-needed.sh ]; then /usr/local/bin/migrate-if-needed.sh 1>>/var/log/etcd.log 2>&1; fi; exec /usr/local/bin/etcd --data-dir=/var/lib/etcd/data --name=kube-etcd-{{index}} --cert-file=/etc/ssl/etcd.pem --key-file=/etc/ssl/etcd-key.pem --trusted-ca-file=/etc/ssl/etcd-ca.pem --peer-cert-file=/etc/ssl/etcd.pem --peer-key-file=/etc/ssl/etcd-key.pem --peer-trusted-ca-file=/etc/ssl/etcd-ca.pem --peer-client-cert-auth --client-cert-auth --listen-peer-urls=https://{{ansible_host}}:2380 --initial-advertise-peer-urls=https://{{ansible_host}}:2380 --listen-client-urls=https://{{ansible_host}}:2379,https://127.0.0.1:2379 --advertise-client-urls=https://{{ansible_host}}:2379 --initial-cluster-token=kube-etcd-cluster --initial-cluster={{etcd_cluster}} --initial-cluster-state=new --auto-compaction-mode=periodic --auto-compaction-retention=1 --max-request-bytes=33554432 --quota-backend-bytes=6442450944 --heartbeat-interval=1000 --election-timeout=10000 --snapshot-count=10000 --max-snapshots=5 --max-wals=5 1>>/var/log/etcd.log 2>&1"
+      ],
+      "volumeMounts": [
+        { 
+          "name": "etcd-key-pem",
+          "mountPath": "/etc/ssl/etcd-key.pem",
+          "readOnly": true
+        },
+        { 
+          "name": "etcd-pem",
+          "mountPath": "/etc/ssl/etcd.pem",
+          "readOnly": true
+        },
+        { 
+          "name": "ca-pem",
+          "mountPath": "/etc/ssl/etcd-ca.pem",
+          "readOnly": true
+        },
+        { 
+          "name": "etcd-log",
+          "mountPath": "/var/log/etcd.log",
+          "readOnly": false
+        },
+        { 
+          "name": "etcd-data",
+          "mountPath": "/var/lib/etcd/data",
+          "readOnly": false
+        }
+      ]
+    }],
+    "volumes":[
+      {
+        "name": "etcd-key-pem",
+        "hostPath": {
+          "path": "/srv/kubernetes/ssl/etcd-key.pem"
+        }
+      },
+      { 
+        "name": "etcd-pem",
+        "hostPath": {
+          "path": "/srv/kubernetes/ssl/etcd.pem"
+        }
+      },
+      {
+        "name": "ca-pem",
+        "hostPath": {
+          "path": "/srv/kubernetes/ssl/etcd-ca.pem"
+        }
+      },
+      { 
+        "name": "etcd-log",
+        "hostPath": {
+          "path": "/srv/kubernetes/logs/etcd.log",
+          "type": "FileOrCreate"
+        }
+      },
+      { 
+        "name": "etcd-data",
+        "hostPath": {
+          "path": "/srv/kubernetes/data/etcd",
+          "type": "DirectoryOrCreate"
+        }
+      }
+    ]
+  }
+}

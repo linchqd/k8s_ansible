@@ -1,0 +1,19 @@
+- name: remove node
+  hosts:
+    - master[0]
+  vars:
+    remove_nodes: ["192.168.1.9"]
+  roles:
+    - kubernetes/remove_node
+- name: uninstall kube node
+  hosts: 
+    - all
+  gather_facts: no
+  roles:
+    - kubernetes/uninstall_kube_node
+- name: uninstall docker
+  hosts:
+    - all
+  gather_facts: no
+  roles:
+    - docker/uninstall_docker

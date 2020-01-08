@@ -1,0 +1,70 @@
+- name: disabled selinux
+  selinux:
+    state: disabled
+- name: disabled firewalld
+  service:
+    name: firewalld
+    state: stopped
+    enabled: no
+- name: download docker bin file
+  get_url:
+    url: "{{docker_download_url}}"
+    dest: /tmp/{{docker_version}}.tgz
+- name: unarchive docker bin file
+  unarchive:
+    copy: no
+    src: "/tmp/{{docker_version}}.tgz"
+    dest: /usr/local/bin/
+- name: build certs
+  local_action: command "{{ansible_root}}/build-docker-certs.sh" "{{ansible_root}}/{{cluster_name}}/certs/docker" "{{inventory_hostname}}"
+- name: create docker dir
+  file:
+    path: /etc/docker
+    state: directory
+    mode: '0755'
+- name: cp root cert
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/docker/ca.pem"
+    dest: /etc/docker/ca.pem
+    owner: root
+    group: root
+    mode: 0644
+- name: cp docker cert
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/docker/docker-{{ansible_host}}.pem"
+    dest: /etc/docker/docker.pem
+    owner: root
+    group: root
+    mode: 0644
+- name: cp docker key cert
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/docker/docker-key-{{ansible_host}}.pem"
+    dest: /etc/docker/docker-key.pem
+    owner: root
+    group: root
+    mode: 0644
+- name: cp docker service
+  copy:
+    src: "{{ansible_root}}/roles/docker/install_docker/files/docker.service"
+    dest: /etc/systemd/system/docker.service
+    owner: root
+    group: root
+    mode: 0644
+- name: cp daemon.json file
+  template:
+    src: "{{ansible_root}}/roles/docker/install_docker/templates/daemon.json.j2"
+    dest: "/etc/docker/daemon.json"
+    owner: root
+    group: root
+    mode: '0644'
+- name: systemctl daemon reload
+  systemd: daemon_reload=yes
+- name: restart docker service
+  service:
+    name: docker
+    state: restarted
+    enabled: yes
+- name: get docker status
+  command: systemctl status docker
+  register: docker_status
+  failed_when: docker_status.stdout.find("(running)") == -1

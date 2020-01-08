@@ -1,0 +1,5 @@
+- name: install component
+  hosts: master[0]
+  gather_facts: no
+  roles:
+    - kubernetes/install_kube_component

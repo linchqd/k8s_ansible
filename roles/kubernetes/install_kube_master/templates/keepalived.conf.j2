@@ -1,0 +1,48 @@
+vrrp_instance KUBE_API_VIP {
+    state {{keepalive_state}} 
+    interface {{keepalive_interface}}
+    virtual_router_id 51
+    priority {{keepalive_priority}}
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass KUBE_API_VIP
+    }
+    virtual_ipaddress {
+        {{cluster_api_vip}}
+    }
+}
+virtual_server {{cluster_api_vip}} 8443 {
+    delay_loop 3
+    lb_algo rr
+    lb_kind DR
+    persistence_timeout 10
+    protocol TCP
+    real_server {{groups.master.0}} 6443 {
+        weight 1
+        TCP_CHECK {
+            connect_port 6443
+            connect_timeout 3
+            nb_get_retry 3
+            delay_before_retry 10
+        }
+    }
+    real_server {{groups.master.1}} 6443 {
+        weight 1
+        TCP_CHECK {
+            connect_port 6443
+            connect_timeout 3
+            nb_get_retry 3
+            delay_before_retry 10
+        }
+    }
+    real_server {{groups.master.2}} 6443 {
+        weight 1
+        TCP_CHECK {
+            connect_port 6443
+            connect_timeout 3
+            nb_get_retry 3
+            delay_before_retry 10
+        }
+    }
+}

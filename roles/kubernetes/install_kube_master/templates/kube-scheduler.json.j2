@@ -1,0 +1,98 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name":"kube-scheduler",
+    "namespace": "kube-system",
+    "annotations": {
+      "scheduler.alpha.kubernetes.io/critical-pod": "",
+      "seccomp.security.alpha.kubernetes.io/pod": "docker/default"
+    },
+    "labels": {
+      "tier": "control-plane",
+      "component": "kube-scheduler",
+      "type.pod.kubernetes.io": "system"
+    }
+  },
+  "spec":{
+    "hostNetwork": true,
+    "containers":[
+      {
+        "name": "kube-scheduler",
+        "image": "{{cluster_kube_scheduler_images}}",
+        "livenessProbe": {
+          "httpGet": {
+            "host": "127.0.0.1",
+            "port": 10251,
+            "path": "/healthz"
+          },
+          "initialDelaySeconds": 15,
+          "timeoutSeconds": 15
+        },
+        "command": [
+          "/bin/sh",
+          "-c",
+          "exec /usr/local/bin/kube-scheduler --config=/etc/kubernetes/kube-scheduler.yaml --bind-address={{ansible_host}} --secure-port=10259 --port=0 --tls-cert-file=/etc/kubernetes/ssl/kube-scheduler.pem --tls-private-key-file=/etc/kubernetes/ssl/kube-scheduler-key.pem --authentication-kubeconfig=/etc/kubernetes/kube-scheduler.kubeconfig --client-ca-file=/etc/kubernetes/ssl/ca.pem --requestheader-allowed-names=\"\" --requestheader-client-ca-file=/etc/kubernetes/ssl/ca.pem --requestheader-extra-headers-prefix=\"X-Remote-Extra-\" --requestheader-group-headers=X-Remote-Group --requestheader-username-headers=X-Remote-User --authorization-kubeconfig=/etc/kubernetes/kube-scheduler.kubeconfig --v=3 1>>/var/log/kube-scheduler.log 2>&1"
+        ],
+        "volumeMounts": [
+          {
+            "name": "kube-scheduler-logfile",
+            "mountPath": "/var/log/kube-scheduler.log",
+            "readOnly": false
+          },
+          {
+            "name": "kube-scheduler-kubeconfig",
+            "mountPath": "/etc/kubernetes/kube-scheduler.kubeconfig",
+            "readOnly": true
+          },
+          {
+            "name": "kube-scheduler-pem",
+            "mountPath": "/etc/kubernetes/ssl/kube-scheduler.pem",
+            "readOnly": true
+          },
+          {
+            "name": "kube-scheduler-key-pem",
+            "mountPath": "/etc/kubernetes/ssl/kube-scheduler-key.pem",
+            "readOnly": true
+          },
+          {
+            "name": "ca-pem",
+            "mountPath": "/etc/kubernetes/ssl/ca.pem",
+            "readOnly": true
+          },
+          {
+            "name": "kube-scheduler-config",
+            "mountPath": "/etc/kubernetes/kube-scheduler.yaml",
+            "readOnly": true
+          }
+        ]
+      }
+    ],
+    "volumes":[
+      {
+        "name": "kube-scheduler-logfile",
+        "hostPath": {"path": "/srv/kubernetes/logs/kube-scheduler.log", "type": "FileOrCreate"}
+      },
+      {
+        "name": "kube-scheduler-kubeconfig",
+        "hostPath": {"path": "/srv/kubernetes/config/kube-scheduler.kubeconfig"}
+      },
+      {
+        "name": "kube-scheduler-pem",
+        "hostPath": {"path": "/srv/kubernetes/ssl/kube-scheduler.pem"}
+      },
+      {
+        "name": "kube-scheduler-key-pem",
+        "hostPath": {"path": "/srv/kubernetes/ssl/kube-scheduler-key.pem"}
+      },
+      {
+        "name": "ca-pem",
+        "hostPath": {"path": "/srv/kubernetes/ssl/ca.pem"}
+      },
+      {
+        "name": "kube-scheduler-config",
+        "hostPath": {"path": "/srv/kubernetes/config/kube-scheduler.yaml"}
+      }
+    ]
+  }
+}

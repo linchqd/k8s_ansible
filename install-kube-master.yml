@@ -1,0 +1,35 @@
+- name: install docker
+  hosts: master
+  gather_facts: no
+  roles:
+    - docker/install_docker
+- name: install kube node
+  hosts: master
+  gather_facts: no 
+  roles:
+    - kubernetes/install_kube_node
+- name: install kube master
+  hosts: master
+  gather_facts: no
+  roles:
+    - kubernetes/install_kube_master
+- name: bind role
+  hosts: master[0]
+  gather_facts: no
+  roles:
+    - kubernetes/bind_kube_role
+- name: mark master role
+  hosts: master[0]
+  gather_facts: no
+  roles:
+    - kubernetes/mark_master_role
+- name: install calico cni
+  hosts: master[0]
+  gather_facts: no
+  roles:
+    - kubernetes/install_calico_cni
+- name: install kube component
+  hosts: master[0]
+  gather_facts: no
+  roles:
+    - kubernetes/install_kube_component

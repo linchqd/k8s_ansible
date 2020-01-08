@@ -1,0 +1,55 @@
+[ req ]
+default_bits = 2048
+default_md = sha256
+distinguished_name = req_distinguished_name
+
+[req_distinguished_name]
+
+
+[ v3_ca ]
+keyUsage = critical, keyCertSign, cRLSign
+basicConstraints = critical, CA:true, pathlen:2
+subjectKeyIdentifier = hash
+authorityKeyIdentifier=keyid
+
+[ v3_req_apiserver ]
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage=serverAuth, clientAuth
+basicConstraints = critical, CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier=keyid
+subjectAltName = @alt_names_cluster
+
+[ v3_req_s ]
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage=serverAuth, clientAuth
+basicConstraints = critical, CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier=keyid
+subjectAltName = @alt_names_cs
+
+[ v3_req_c ]
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage=serverAuth, clientAuth
+basicConstraints = critical, CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier=keyid
+
+[ alt_names_cluster ]
+DNS.1 = kubernetes
+DNS.2 = kubernetes.default
+DNS.3 = kubernetes.default.svc
+DNS.4 = kubernetes.default.svc.cluster
+DNS.5 = kubernetes.default.svc.cluster.local.
+IP.1 = 127.0.0.1
+IP.2 = {{groups.master.0}}
+IP.3 = {{groups.master.1}}
+IP.4 = {{groups.master.2}}
+IP.5 = {{cluster_api_svc_ip}}
+IP.6 = {{cluster_api_vip}}
+
+[ alt_names_cs ]
+IP.1 = 127.0.0.1
+IP.2 = {{groups.master.0}}
+IP.3 = {{groups.master.1}}
+IP.4 = {{groups.master.2}}

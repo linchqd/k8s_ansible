@@ -1,0 +1,83 @@
+- import_tasks: base.yml
+- name: download kube bin file
+  get_url:
+    url: "{{kube_download_url}}"
+    dest: /tmp/{{kube_version}}.tgz
+- name: unarchive kube bin file
+  unarchive:
+    copy: no
+    src: "/tmp/{{kube_version}}.tgz"
+    dest: /usr/local/bin/
+- name: cp kubelet.service file
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_node/templates/kubelet.service.j2"
+    dest: /etc/systemd/system/kubelet.service
+    owner: root
+    group: root
+    mode: '0644'
+- name: create kubernetes config dir
+  file:
+    path: /srv/kubernetes/config
+    state: directory
+    mode: '0755'
+- name: create kubernetes ssl dir
+  file:
+    path: /srv/kubernetes/ssl
+    state: directory
+    mode: '0755'
+- name: cp ca.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/ca.pem"
+    dest: /srv/kubernetes/ssl/ca.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kubelet-config.yaml file
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_node/templates/kubelet-config.yaml.j2"
+    dest: /srv/kubernetes/config/kubelet-config.yaml
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kubelet kubeconfig file for master
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/kubeconfig/kubelet.kubeconfig"
+    dest: /srv/kubernetes/config/kubelet.kubeconfig
+    owner: root
+    group: root
+    mode: '0644'
+- name: reload kubelet service
+  systemd: daemon_reload=yes
+- name: start kubelet service
+  service:
+    name: kubelet
+    state: restarted
+    enabled: yes
+- name: cp kube-proxy.service file
+  copy:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_node/files/kube-proxy.service"
+    dest: /etc/systemd/system/kube-proxy.service
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kube-proxy-config.yaml file
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_node/templates/kube-proxy-config.yaml.j2"
+    dest: /srv/kubernetes/config/kube-proxy-config.yaml
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kube-proxy kubeconfig file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/kubeconfig/kube-proxy.kubeconfig"
+    dest: /srv/kubernetes/config/kube-proxy.kubeconfig
+    owner: root
+    group: root
+    mode: '0644'
+- name: reload kube-proxy service
+  systemd: daemon_reload=yes
+- name: start kube-proxy service
+  service:
+    name: kube-proxy
+    state: restarted
+    enabled: yes

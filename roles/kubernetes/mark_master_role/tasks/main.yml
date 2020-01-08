@@ -1,0 +1,10 @@
+- name: set master role label
+  command: "kubectl label --overwrite nodes {{item}} node-role.kubernetes.io/master="
+  with_items:
+    - "{{groups.master}}"
+  ignore_errors: yes
+- name: set master role taint
+  command: "kubectl taint --overwrite nodes {{item}} node-role.kubernetes.io/master=:NoSchedule"
+  with_items:
+    - "{{groups.master}}"
+  ignore_errors: yes

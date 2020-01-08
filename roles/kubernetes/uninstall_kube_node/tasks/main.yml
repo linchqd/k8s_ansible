@@ -1,0 +1,31 @@
+- name: stop kubelet service
+  service:
+    name: kubelet
+    state: stopped
+    enabled: no
+- name: stop kube-proxy service
+  service:
+    name: kube-proxy
+    state: stopped
+    enabled: no
+- name: create bak dir
+  file:
+    path: /tmp/kube_bak
+    state: directory
+    mode: '0755'
+- name: remove bin file
+  shell: "mv /usr/local/bin/{{item}} /tmp/kube_bak"
+  with_items:
+    - ["etcdctl", "kubeadm", "kubectl", "kubelet", "kube-proxy"]
+- name: remove service file
+  shell: "mv /etc/systemd/system/{{item}} /tmp/kube_bak"
+  with_items:
+    - ["kubelet.service", "kube-proxy.service"]
+- name: remove config file
+  shell: "mv /srv/kubernetes /tmp/kube_bak/kubernetes-$(date '+%s')"
+  ignore_errors: yes
+- name: remove kubelet file
+  file:
+    path: /var/lib/kubelet/pki
+    state: absent
+    force: true

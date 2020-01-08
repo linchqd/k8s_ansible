@@ -1,0 +1,37 @@
+- name: create cert dir
+  file:
+    path: "{{ansible_root}}/{{cluster_name}}/certs/docker"
+    state: directory
+    mode: '0755'
+- name: create kubeconfig dir
+  file:
+    path: "{{ansible_root}}/{{cluster_name}}/kubeconfig"
+    state: directory
+    mode: '0755'
+- name: cp build-kube-certs.sh 
+  template:
+    src: "{{ansible_root}}/roles/init_kube_certs/templates/build-kube-certs.sh.j2"
+    dest: "{{ansible_root}}/{{cluster_name}}/certs/build-kube-certs.sh"
+    owner: root
+    group: root
+    mode: '0755'
+- name: cp openssl.cnf
+  template:
+    src: "{{ansible_root}}/roles/init_kube_certs/templates/openssl.cnf.j2"
+    dest: "{{ansible_root}}/{{cluster_name}}/certs/openssl.cnf"
+    owner: root
+    group: root
+    mode: '0644'
+- name: install docker ca certs
+  script: "{{ansible_root}}/build-docker-certs.sh {{ansible_root}}/{{cluster_name}}/certs/docker"
+- name: install kube certs
+  script: "{{ansible_root}}/{{cluster_name}}/certs/build-kube-certs.sh"
+- name: cp build-kube-config.sh 
+  template:
+    src: "{{ansible_root}}/roles/init_kube_certs/templates/build-kube-config.sh.j2"
+    dest: "{{ansible_root}}/{{cluster_name}}/kubeconfig/build-kube-config.sh"
+    owner: root
+    group: root
+    mode: '0755'
+- name: install kube config
+  script: "{{ansible_root}}/{{cluster_name}}/kubeconfig/build-kube-config.sh"

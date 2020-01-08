@@ -1,0 +1,30 @@
+- name: create addons dir
+  file:
+    path: /srv/kubernetes/addons
+    state: directory
+    mode: '0755'
+- name: copy coredns file
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_component/templates/coredns.yaml.j2"
+    dest: /srv/kubernetes/addons/coredns.yaml
+    owner: root
+    group: root
+    mode: 0644
+- name: copy dashborad file
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_component/templates/dashboard.yaml.j2"
+    dest: /srv/kubernetes/addons/dashboard.yaml
+    owner: root
+    group: root
+    mode: 0644
+- name: copy metrics-server file
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_component/templates/metrics-server.yaml.j2"
+    dest: /srv/kubernetes/addons/metrics-server.yaml
+    owner: root
+    group: root
+    mode: 0644
+- name: install addons 
+  command: kubectl apply -f /srv/kubernetes/addons/
+  ignore_errors: yes
+

@@ -1,0 +1,111 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name":"kube-controller-manager",
+    "namespace": "kube-system",
+    "annotations": {
+      "scheduler.alpha.kubernetes.io/critical-pod": "",
+      "seccomp.security.alpha.kubernetes.io/pod": "docker/default"
+    },
+    "labels": {
+      "tier": "control-plane",
+      "component": "kube-controller-manager",
+      "type.pod.kubernetes.io": "system"
+    }
+  },
+  "spec":{
+    "hostNetwork": true,
+    "containers":[
+      {
+        "name": "kube-controller-manager",
+        "image": "{{cluster_kube_controller_manager_images}}",
+        "livenessProbe": {
+          "httpGet": {
+            "host": "127.0.0.1",
+            "port": 10252,
+            "path": "/healthz"
+          },
+          "initialDelaySeconds": 15,
+          "timeoutSeconds": 15
+        },
+        "command": [
+          "/bin/sh",
+          "-c",
+          "exec /usr/local/bin/kube-controller-manager --profiling --allocate-node-cidrs=true --cluster-cidr={{cluster_pod_ip_range}} --cluster-name=kubernetes --controllers=*,bootstrapsigner,tokencleaner --kube-api-qps=1000 --kube-api-burst=2000 --leader-elect --use-service-account-credentials --concurrent-service-syncs=2 --bind-address={{ansible_host}} --address=127.0.0.1 --secure-port=10252 --tls-cert-file=/etc/kubernetes/ssl/kube-controller-manager.pem --tls-private-key-file=/etc/kubernetes/ssl/kube-controller-manager-key.pem --authentication-kubeconfig=/etc/kubernetes/kube-controller-manager.kubeconfig --client-ca-file=/etc/kubernetes/ssl/ca.pem --requestheader-allowed-names=\"\" --requestheader-client-ca-file=/etc/kubernetes/ssl/ca.pem --requestheader-extra-headers-prefix=\"X-Remote-Extra-\" --requestheader-group-headers=X-Remote-Group --requestheader-username-headers=X-Remote-User --authorization-kubeconfig=/etc/kubernetes/kube-controller-manager.kubeconfig --cluster-signing-cert-file=/etc/kubernetes/ssl/ca.pem --cluster-signing-key-file=/etc/kubernetes/ssl/ca-key.pem --experimental-cluster-signing-duration=876000h --horizontal-pod-autoscaler-sync-period=10s --concurrent-deployment-syncs=10 --concurrent-gc-syncs=30 --node-cidr-mask-size=24 --service-cluster-ip-range={{cluster_svc_ip_range}} --pod-eviction-timeout=6m --terminated-pod-gc-threshold=10000 --root-ca-file=/etc/kubernetes/ssl/ca.pem --service-account-private-key-file=/etc/kubernetes/ssl/ca-key.pem --kubeconfig=/etc/kubernetes/kube-controller-manager.kubeconfig --v=3 1>>/var/log/kube-controller-manager.log 2>&1"
+        ],
+        "volumeMounts": [
+          { 
+            "name": "ca-pem",
+            "mountPath": "/etc/kubernetes/ssl/ca.pem",
+            "readOnly": true
+          },
+          {
+            "name": "ca-key-pem",
+            "mountPath": "/etc/kubernetes/ssl/ca-key.pem",
+            "readOnly": true
+          },
+          { 
+            "name": "kube-controller-manager-pem",
+            "mountPath": "/etc/kubernetes/ssl/kube-controller-manager.pem",
+            "readOnly": true
+          },
+          {
+            "name": "kube-controller-manager-key-pem",
+            "mountPath": "/etc/kubernetes/ssl/kube-controller-manager-key.pem",
+            "readOnly": true
+          },
+          { 
+            "name": "kube-controller-manager-logfile",
+            "mountPath": "/var/log/kube-controller-manager.log",
+            "readOnly": false
+          },
+          { 
+            "name": "kube-controller-manager-config",
+            "mountPath": "/etc/kubernetes/kube-controller-manager.kubeconfig",
+            "readOnly": true
+          }
+        ]
+      }
+    ],
+    "volumes":[
+      { 
+        "name": "ca-pem",
+        "hostPath": {
+          "path": "/srv/kubernetes/ssl/ca.pem"
+        }
+      },
+      { 
+        "name": "ca-key-pem",
+        "hostPath": {
+          "path": "/srv/kubernetes/ssl/ca-key.pem"
+        }
+      },
+      { 
+        "name": "kube-controller-manager-pem",
+        "hostPath": {
+          "path": "/srv/kubernetes/ssl/kube-controller-manager.pem"
+        }
+      },
+      { 
+        "name": "kube-controller-manager-key-pem",
+        "hostPath": {
+          "path": "/srv/kubernetes/ssl/kube-controller-manager-key.pem"
+        }
+      },
+      { 
+        "name": "kube-controller-manager-logfile",
+        "hostPath": {
+          "path": "/srv/kubernetes/logs/kube-controller-manager.log",
+          "type": "FileOrCreate"
+        }
+      },
+      { 
+        "name": "kube-controller-manager-config",
+        "hostPath": {
+          "path": "/srv/kubernetes/config/kube-controller-manager.kubeconfig"
+        }
+      }
+    ]
+  }
+}

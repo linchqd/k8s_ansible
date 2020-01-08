@@ -1,0 +1,15 @@
+- name: install docker
+  hosts: node
+  gather_facts: no
+  roles:
+    - docker/install_docker
+- name: install kube nodes
+  hosts: node
+  gather_facts: no 
+  roles:
+    - kubernetes/install_kube_node
+- name: mark node role
+  hosts: master[0]
+  gather_facts: no
+  roles:
+    - kubernetes/mark_node_role

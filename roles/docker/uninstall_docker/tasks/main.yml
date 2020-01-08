@@ -1,0 +1,21 @@
+- name: stop docker service
+  service:
+    name: docker
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+- name: create bak dir
+  file:
+    path: /tmp/docker_bak
+    state: directory
+    mode: '0755'
+- name: remove docker config
+  command: mv /etc/docker /tmp/docker_bak/dockerconfig
+  ignore_errors: yes
+- name: remove bin file
+  shell: "mv /usr/local/bin/{{item}} /tmp/docker_bak/"
+  with_items:
+    - ["containerd", "containerd-shim", "ctr", "docker", "dockerd", "docker-init", "docker-proxy", "runc"]
+  ignore_errors: yes
+- name: remove docker service file
+  command: mv /etc/systemd/system/docker.service /tmp/docker_bak/

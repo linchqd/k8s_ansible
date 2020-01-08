@@ -1,0 +1,6 @@
+- name: uninstall docker
+  hosts: 
+    - master
+  gather_facts: no
+  roles:
+    - docker/uninstall_docker

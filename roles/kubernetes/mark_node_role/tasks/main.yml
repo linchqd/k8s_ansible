@@ -1,0 +1,15 @@
+- name: wait for kubelet csr
+  command: sleep 15
+- name: approve node csr
+  shell: "kubectl get csr | grep Pending || echo 'noexists'"
+  register: get_csr
+  ignore_errors: yes
+- name: approve node csr
+  shell: kubectl certificate approve $(kubectl get csr | grep Pending | awk '{print $1}')
+  ignore_errors: yes
+  when: get_csr.stdout != 'noexists'
+- name: set node role label
+  command: "kubectl label --overwrite nodes {{item}} node-role.kubernetes.io/node="
+  with_items:
+    - "{{groups.node}}"
+  ignore_errors: yes

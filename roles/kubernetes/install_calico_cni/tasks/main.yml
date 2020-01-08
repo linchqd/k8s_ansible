@@ -1,0 +1,10 @@
+- name: cp calico.yaml file
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_calico_cni/templates/calico.yaml.j2"
+    dest: /srv/kubernetes/config/calico.yaml
+    owner: root
+    group: root
+    mode: 0644
+- name: install calico cni 
+  command: kubectl apply -f /srv/kubernetes/config/calico.yaml
+  ignore_errors: yes

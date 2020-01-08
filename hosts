@@ -1,0 +1,60 @@
+all:
+  children:
+    k8s_cluster:
+      children:
+        master:
+          hosts:
+            192.168.1.89:
+              index: 1
+              keepalive_state: MASTER
+              keepalive_interface: eth0
+              keepalive_priority: 100
+            192.168.1.90:
+              index: 2
+              keepalive_state: BACKUP
+              keepalive_interface: eth0
+              keepalive_priority: 99
+            192.168.1.91:
+              index: 3
+              keepalive_state: BACKUP
+              keepalive_interface: eth0
+              keepalive_priority: 99
+          vars:
+            role: master
+        node:
+          hosts:
+            192.168.1.92:
+          vars:
+            role: node
+  vars:
+    cluster_name: k8s_test
+    ansible_root: /root/k8s_ansible
+    # head -c 32 /dev/urandom | base64
+    cluster_encrypt_secret: 93D3cD23ex53dlrY9rmBndEtFV7spFBkiBQOrngQUPs=
+    cluster_dns_svc_ip: 192.168.100.2
+    cluster_api_svc_ip: 192.168.100.1
+    cluster_api_vip: 192.168.1.88
+    cluster_pod_ip_range: 172.16.0.0/16
+    cluster_svc_ip_range: 192.168.100.0/24
+    kube_version: 1.16.4
+    docker_version: 19.03.1
+    insecure_register: 192.168.1.87:5000
+    ntp_server_ip: 192.168.1.87
+    keepalived: false
+    etcd_cluster: kube-etcd-1=https://192.168.1.89:2380,kube-etcd-2=https://192.168.1.90:2380,kube-etcd-3=https://192.168.1.91:2380
+    etcd_cluster_endpoints: https://192.168.1.89:2379,https://192.168.1.90:2379,https://192.168.1.91:2379
+    cluster_kubeapiserver_images: registry.cn-hangzhou.aliyuncs.com/cluster_images/kube-apiserver-amd64:v1.16.4
+    cluster_kube_controller_manager_images: registry.cn-hangzhou.aliyuncs.com/cluster_images/kube-controller-manager-amd64:v1.16.4
+    cluster_kube_scheduler_images: registry.cn-hangzhou.aliyuncs.com/cluster_images/kube-scheduler-amd64:v1.16.4
+    cluster_etcd_images: registry.cn-hangzhou.aliyuncs.com/cluster_images/etcd:3.3.15-0
+    cluster_pause_images: registry.cn-hangzhou.aliyuncs.com/cluster_images/pause:3.1
+    cluster_coredns_images: registry.cn-hangzhou.aliyuncs.com/cluster_images/coredns:1.6.2
+    cluster_dashboard_images: registry.cn-hangzhou.aliyuncs.com/cluster_images/kubernetes-dashboard-amd64:v1.10.1
+    cluster_metrics_images: registry.cn-hangzhou.aliyuncs.com/cluster_images/metrics-server-amd64:v0.3.6
+    calico_node_images: registry.cn-hangzhou.aliyuncs.com/cluster_images/calico-node:v3.11.1
+    calico_typha_images: registry.cn-hangzhou.aliyuncs.com/cluster_images/calico-typha:v3.11.1
+    calico_pod2daemon_flexvol_images: registry.cn-hangzhou.aliyuncs.com/cluster_images/calico-pod2daemon-flexvol:v3.11.1
+    calico_cni_images: registry.cn-hangzhou.aliyuncs.com/cluster_images/calico-cni:v3.11.1
+    calico_controllers_images: registry.cn-hangzhou.aliyuncs.com/cluster_images/calico-kube-controllers:v3.11.1
+    kube_download_url: http://192.168.1.87/kube-1.16.4.tgz
+    docker_download_url: http://192.168.1.87/docker-19.03.1.tgz

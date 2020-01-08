@@ -1,0 +1,189 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name":"kube-apiserver",
+    "namespace": "kube-system",
+    "annotations": {
+      "scheduler.alpha.kubernetes.io/critical-pod": "",
+      "seccomp.security.alpha.kubernetes.io/pod": "docker/default"
+    },
+    "labels": {
+      "tier": "control-plane",
+      "component": "kube-apiserver",
+      "type.pod.kubernetes.io": "system"
+    }
+  },
+  "spec":{
+    "hostNetwork": true,
+    "containers":[
+      {
+        "name": "kube-apiserver",
+        "image": "{{cluster_kubeapiserver_images}}",
+        "livenessProbe": {
+          "httpGet": {
+            "scheme": "HTTP",
+            "host": "127.0.0.1",
+            "port": 8080,
+            "path": "/livez?exclude=etcd&exclude=kms-provider-0&exclude=kms-provider-1"
+          },
+          "initialDelaySeconds": 15,
+          "timeoutSeconds": 15
+        },
+        "readinessProbe": {
+          "httpGet": {
+            "scheme": "HTTP",
+            "host": "127.0.0.1",
+            "port": 8080,
+            "path": "/readyz"
+          },
+          "periodSeconds": 1,
+          "timeoutSeconds": 15
+        },
+        "command": [
+           "/bin/sh",
+           "-c",
+           "exec /usr/local/bin/kube-apiserver --advertise-address={{ansible_host}} --default-not-ready-toleration-seconds=360 --default-unreachable-toleration-seconds=360 --feature-gates=DynamicAuditing=true --max-mutating-requests-inflight=2000 --max-requests-inflight=4000 --default-watch-cache-size=200 --delete-collection-workers=2 --encryption-provider-config=/etc/kubernetes/encryption-config.yaml --etcd-cafile=/etc/kubernetes/ssl/etcd-ca.pem --etcd-certfile=/etc/kubernetes/ssl/kubernetes-etcd.pem --etcd-keyfile=/etc/kubernetes/ssl/kubernetes-etcd-key.pem --etcd-servers={{etcd_cluster_endpoints}} --bind-address={{ansible_host}} --secure-port=6443 --tls-cert-file=/etc/kubernetes/ssl/kubernetes.pem --tls-private-key-file=/etc/kubernetes/ssl/kubernetes-key.pem --audit-dynamic-configuration --audit-log-maxage=15 --audit-log-maxbackup=3 --audit-log-maxsize=100 --audit-log-truncate-enabled --audit-log-path=/var/log/kube-apiserver-audit.log --audit-policy-file=/etc/kubernetes/audit-policy.yaml --profiling --anonymous-auth=false --client-ca-file=/etc/kubernetes/ssl/ca.pem --enable-bootstrap-token-auth --requestheader-allowed-names=\"aggregator\" --requestheader-client-ca-file=/etc/kubernetes/ssl/ca.pem --requestheader-extra-headers-prefix=\"X-Remote-Extra-\" --requestheader-group-headers=X-Remote-Group --requestheader-username-headers=X-Remote-User --service-account-key-file=/etc/kubernetes/ssl/ca.pem --authorization-mode=Node,RBAC --runtime-config=api/all=true --enable-admission-plugins=NodeRestriction --allow-privileged=true --apiserver-count=3 --event-ttl=168h --kubelet-certificate-authority=/etc/kubernetes/ssl/ca.pem --kubelet-client-certificate=/etc/kubernetes/ssl/kubernetes.pem --kubelet-client-key=/etc/kubernetes/ssl/kubernetes-key.pem --kubelet-https=true --kubelet-timeout=10s --proxy-client-cert-file=/etc/kubernetes/ssl/proxy-client.pem --proxy-client-key-file=/etc/kubernetes/ssl/proxy-client-key.pem --service-cluster-ip-range={{cluster_svc_ip_range}} --service-node-port-range=30000-32767 --logtostderr=true --v=3 1>>/var/log/kube-apiserver.log 2>&1"
+        ],
+        "volumeMounts": [
+          { 
+            "name": "encryption-config",
+            "mountPath": "/etc/kubernetes/encryption-config.yaml",
+            "readOnly": true
+          },
+          { 
+            "name": "audit-policy-config",
+            "mountPath": "/etc/kubernetes/audit-policy.yaml",
+            "readOnly": true
+          },
+          { 
+            "name": "apiserver-logfile",
+            "mountPath": "/var/log/kube-apiserver.log",
+            "readOnly": false
+          },
+          { 
+            "name": "audit-logfile",
+            "mountPath": "/var/log/kube-apiserver-audit.log",
+            "readOnly": false
+          },
+          { 
+            "name": "kubernetes-pem",
+            "mountPath": "/etc/kubernetes/ssl/kubernetes.pem",
+            "readOnly": true
+          },
+          { 
+            "name": "kubernetes-key-pem",
+            "mountPath": "/etc/kubernetes/ssl/kubernetes-key.pem",
+            "readOnly": true
+          },
+          { 
+            "name": "kubernetes-etcd-pem",
+            "mountPath": "/etc/kubernetes/ssl/kubernetes-etcd.pem",
+            "readOnly": true
+          },
+          { 
+            "name": "kubernetes-etcd-key-pem",
+            "mountPath": "/etc/kubernetes/ssl/kubernetes-etcd-key.pem",
+            "readOnly": true
+          },
+          { 
+            "name": "proxy-client-pem",
+            "mountPath": "/etc/kubernetes/ssl/proxy-client.pem",
+            "readOnly": true
+          },
+          { 
+            "name": "proxy-client-key-pem",
+            "mountPath": "/etc/kubernetes/ssl/proxy-client-key.pem",
+            "readOnly": true
+          },
+          {
+            "name": "ca-pem",
+            "mountPath": "/etc/kubernetes/ssl/ca.pem",
+            "readOnly": true
+          },
+          {
+            "name": "etcd-ca-pem",
+            "mountPath": "/etc/kubernetes/ssl/etcd-ca.pem",
+            "readOnly": true
+          }
+        ]
+      }
+    ],
+    "volumes":[
+      { 
+        "name": "encryption-config",
+        "hostPath": {
+          "path": "/srv/kubernetes/config/encryption-config.yaml"
+        }
+      },
+      { 
+        "name": "audit-policy-config",
+        "hostPath": {
+          "path": "/srv/kubernetes/config/audit-policy.yaml"
+        }
+      },
+      { 
+        "name": "apiserver-logfile",
+        "hostPath": {
+          "path": "/srv/kubernetes/logs/kube-apiserver.log",
+          "type": "FileOrCreate"
+        }
+      },
+      { 
+        "name": "audit-logfile",
+        "hostPath": {
+          "path": "/srv/kubernetes/logs/kube-apiserver-audit.log",
+          "type": "FileOrCreate"
+        }
+      },
+      { 
+        "name": "kubernetes-pem",
+        "hostPath": {
+          "path": "/srv/kubernetes/ssl/kubernetes.pem"
+        }
+      },
+      { 
+        "name": "kubernetes-key-pem",
+        "hostPath": {
+          "path": "/srv/kubernetes/ssl/kubernetes-key.pem"
+        }
+      },
+      { 
+        "name": "kubernetes-etcd-pem",
+        "hostPath": {
+          "path": "/srv/kubernetes/ssl/kubernetes-etcd.pem"
+        }
+      },
+      { 
+        "name": "kubernetes-etcd-key-pem",
+        "hostPath": {
+          "path": "/srv/kubernetes/ssl/kubernetes-etcd-key.pem"
+        }
+      },
+      { 
+        "name": "proxy-client-pem",
+        "hostPath": {
+          "path": "/srv/kubernetes/ssl/proxy-client.pem"
+        }
+      },
+      { 
+        "name": "proxy-client-key-pem",
+        "hostPath": {
+          "path": "/srv/kubernetes/ssl/proxy-client-key.pem"
+        }
+      },
+      { 
+        "name": "ca-pem",
+          "hostPath": {
+            "path": "/srv/kubernetes/ssl/ca.pem"
+          }
+      },
+      { 
+        "name": "etcd-ca-pem",
+          "hostPath": {
+            "path": "/srv/kubernetes/ssl/etcd-ca.pem"
+          }
+      }
+    ]
+  }
+}

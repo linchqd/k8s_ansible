@@ -1,0 +1,210 @@
+- name: create log dir
+  file:
+    path: /srv/kubernetes/logs
+    state: directory
+    mode: '0755'
+- name: create manifest dir
+  file:
+    path: /srv/kubernetes/manifest
+    state: directory
+    mode: '0755'
+- name: create config dir
+  file:
+    path: /srv/kubernetes/config
+    state: directory
+    mode: '0755'
+- name: create ssl dir
+  file:
+    path: /srv/kubernetes/ssl
+    state: directory
+    mode: '0755'
+- name: cp etcd.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/etcd.pem"
+    dest: /srv/kubernetes/ssl/etcd.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp etcd-key.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/etcd-key.pem"
+    dest: /srv/kubernetes/ssl/etcd-key.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp etcd-ca.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/docker/ca.pem"
+    dest: /srv/kubernetes/ssl/etcd-ca.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp etcd-client.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/docker/client.pem"
+    dest: /srv/kubernetes/ssl/kubernetes-etcd.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp etcd-client-key.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/docker/client-key.pem"
+    dest: /srv/kubernetes/ssl/kubernetes-etcd-key.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp etcd.json file
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_master/templates/etcd.json.j2"
+    dest: /srv/kubernetes/manifest/etcd.json
+    owner: root
+    group: root
+    mode: '0644'
+- name: restart kubelet service
+  service:
+    name: kubelet
+    state: restarted
+- name: wait for etcd server start
+  wait_for:
+    port: 2379
+    delay: 10
+- name: cp audit-policy.yaml file
+  copy:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_master/files/audit-policy.yaml"
+    dest: /srv/kubernetes/config/audit-policy.yaml
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp encryption-config.yaml file
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_master/templates/encryption-config.yaml.j2"
+    dest: "/srv/kubernetes/config/encryption-config.yaml"
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kube-scheduler.yaml file
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_master/templates/kube-scheduler.yaml.j2"
+    dest: /srv/kubernetes/config/kube-scheduler.yaml
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kube-controller-manager.kubeconfig file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/kubeconfig/kube-controller-manager.kubeconfig"
+    dest: /srv/kubernetes/config/kube-controller-manager.kubeconfig
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kube-scheduler.kubeconfig file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/kubeconfig/kube-scheduler.kubeconfig"
+    dest: /srv/kubernetes/config/kube-scheduler.kubeconfig
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp ca-key.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/ca-key.pem"
+    dest: /srv/kubernetes/ssl/ca-key.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kubernetes.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/kubernetes.pem"
+    dest: /srv/kubernetes/ssl/kubernetes.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kubernetes-key.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/kubernetes-key.pem"
+    dest: /srv/kubernetes/ssl/kubernetes-key.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp proxy-client.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/proxy-client.pem"
+    dest: /srv/kubernetes/ssl/proxy-client.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp proxy-client-key.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/proxy-client-key.pem"
+    dest: /srv/kubernetes/ssl/proxy-client-key.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kube-scheduler.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/kube-scheduler.pem"
+    dest: /srv/kubernetes/ssl/kube-scheduler.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kube-scheduler-key.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/kube-scheduler-key.pem"
+    dest: /srv/kubernetes/ssl/kube-scheduler-key.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kube-controller-manager.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/kube-controller-manager.pem"
+    dest: /srv/kubernetes/ssl/kube-controller-manager.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kube-controller-manager-key.pem file
+  copy:
+    src: "{{ansible_root}}/{{cluster_name}}/certs/kube-controller-manager-key.pem"
+    dest: /srv/kubernetes/ssl/kube-controller-manager-key.pem
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kube-apiserver.json file
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_master/templates/kube-apiserver.json.j2"
+    dest: /srv/kubernetes/manifest/kube-apiserver.json
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kube-controller-manager.json file
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_master/templates/kube-controller-manager.json.j2"
+    dest: /srv/kubernetes/manifest/kube-controller-manager.json
+    owner: root
+    group: root
+    mode: '0644'
+- name: cp kube-scheduler.json file
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_master/templates/kube-scheduler.json.j2"
+    dest: /srv/kubernetes/manifest/kube-scheduler.json
+    owner: root
+    group: root
+    mode: '0644'
+- name: restart kubelet service
+  service:
+    name: kubelet
+    state: restarted
+- name: wait for kubeapiserver start
+  wait_for:
+    port: 8080
+    delay: 120
+- name: cp keepalived config
+  template:
+    src: "{{ansible_root}}/roles/kubernetes/install_kube_master/templates/keepalived.conf.j2"
+    dest: /etc/keepalived/keepalived.conf
+    owner: root
+    group: root
+    mode: '0644'
+  when: keepalived  == 'true'
+- name: restart keepalived
+  service:
+    name: keepalived 
+    state: restarted
+  when: keepalived  == 'true'

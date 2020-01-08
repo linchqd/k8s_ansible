@@ -1,0 +1,86 @@
+# admin kubeconfig
+{{ansible_root}}/kubectl config set-cluster kubernetes \
+  --server=https://{{cluster_api_vip}}:8443 \
+  --certificate-authority={{ansible_root}}/{{cluster_name}}/certs/ca.pem \
+  --embed-certs=true \
+  --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/admin.kubeconfig
+
+{{ansible_root}}/kubectl config set-credentials admin \
+  --client-certificate={{ansible_root}}/{{cluster_name}}/certs/admin.pem \
+  --client-key={{ansible_root}}/{{cluster_name}}/certs/admin-key.pem \
+  --embed-certs=true \
+  --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/admin.kubeconfig
+
+{{ansible_root}}/kubectl config set-context kubernetes --cluster=kubernetes --user=admin --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/admin.kubeconfig
+
+{{ansible_root}}/kubectl config use-context kubernetes --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/admin.kubeconfig
+
+# kubelet kubeconfig
+{{ansible_root}}/kubectl config set-cluster kubernetes \
+  --server=https://{{cluster_api_vip}}:8443 \
+  --certificate-authority={{ansible_root}}/{{cluster_name}}/certs/ca.pem \
+  --embed-certs=true \
+  --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kubelet.kubeconfig
+
+{{ansible_root}}/kubectl config set-credentials kubelet \
+  --client-certificate={{ansible_root}}/{{cluster_name}}/certs/kubelet.pem \
+  --client-key={{ansible_root}}/{{cluster_name}}/certs/kubelet-key.pem \
+  --embed-certs=true \
+  --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kubelet.kubeconfig
+
+{{ansible_root}}/kubectl config set-context kubernetes --cluster=kubernetes --user=kubelet --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kubelet.kubeconfig
+
+{{ansible_root}}/kubectl config use-context kubernetes --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kubelet.kubeconfig
+
+# kube-controller-manager kubeconfig
+
+{{ansible_root}}/kubectl config set-cluster kubernetes \
+  --server=https://{{cluster_api_vip}}:8443 \
+  --certificate-authority={{ansible_root}}/{{cluster_name}}/certs/ca.pem \
+  --embed-certs=true \
+  --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kube-controller-manager.kubeconfig
+
+{{ansible_root}}/kubectl config set-credentials system:kube-controller-manager \
+  --client-certificate={{ansible_root}}/{{cluster_name}}/certs/kube-controller-manager.pem \
+  --client-key={{ansible_root}}/{{cluster_name}}/certs/kube-controller-manager-key.pem \
+  --embed-certs=true \
+  --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kube-controller-manager.kubeconfig
+
+{{ansible_root}}/kubectl config set-context system:kube-controller-manager --cluster=kubernetes --user=system:kube-controller-manager --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kube-controller-manager.kubeconfig
+
+{{ansible_root}}/kubectl config use-context system:kube-controller-manager --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kube-controller-manager.kubeconfig
+
+
+# kube-scheduler kubeconfig
+{{ansible_root}}/kubectl config set-cluster kubernetes \
+  --certificate-authority={{ansible_root}}/{{cluster_name}}/certs/ca.pem \
+  --embed-certs=true \
+  --server=https://{{cluster_api_vip}}:8443 \
+  --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kube-scheduler.kubeconfig
+
+{{ansible_root}}/kubectl config set-credentials system:kube-scheduler \
+  --client-certificate={{ansible_root}}/{{cluster_name}}/certs/kube-scheduler.pem \
+  --client-key={{ansible_root}}/{{cluster_name}}/certs/kube-scheduler-key.pem \
+  --embed-certs=true \
+  --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kube-scheduler.kubeconfig
+
+{{ansible_root}}/kubectl config set-context system:kube-scheduler --cluster=kubernetes --user=system:kube-scheduler --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kube-scheduler.kubeconfig
+
+{{ansible_root}}/kubectl config use-context system:kube-scheduler --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kube-scheduler.kubeconfig
+
+# kube-proxy kubeconfig
+{{ansible_root}}/kubectl config set-cluster kubernetes \
+  --certificate-authority={{ansible_root}}/{{cluster_name}}/certs/ca.pem \
+  --embed-certs=true \
+  --server=https://{{cluster_api_vip}}:8443 \
+  --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kube-proxy.kubeconfig
+
+{{ansible_root}}/kubectl config set-credentials kube-proxy \
+  --client-certificate={{ansible_root}}/{{cluster_name}}/certs/kube-proxy.pem \
+  --client-key={{ansible_root}}/{{cluster_name}}/certs/kube-proxy-key.pem \
+  --embed-certs=true \
+  --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kube-proxy.kubeconfig
+
+{{ansible_root}}/kubectl config set-context default --cluster=kubernetes --user=kube-proxy --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kube-proxy.kubeconfig
+
+{{ansible_root}}/kubectl config use-context default --kubeconfig={{ansible_root}}/{{cluster_name}}/kubeconfig/kube-proxy.kubeconfig

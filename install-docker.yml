@@ -1,0 +1,11 @@
+- name: install docker
+  hosts: 
+    - 192.168.1.114
+  gather_facts: no
+  #vars:
+  #  ansible_root: /root/k8s_ansible
+  #  docker_download_url: http://192.168.1.87/docker-19.03.1.tgz
+  #  docker_version: 19.03.1
+  #  insecure_register: 192.168.1.87:5000
+  roles:
+    - docker/install_docker

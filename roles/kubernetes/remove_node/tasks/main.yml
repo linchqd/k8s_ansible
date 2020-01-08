@@ -1,0 +1,8 @@
+- name: drain node
+  command: kubectl drain {{item}} --ignore-daemonsets
+  with_items:
+    - "{{remove_nodes}}"
+- name: delete node
+  command: kubectl delete node {{item}}
+  with_items:
+    - "{{remove_nodes}}"
